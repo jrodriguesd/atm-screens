@@ -1,0 +1,28 @@
+{
+  "name": "atm-screens",
+  "version": "0.1.0",
+  "description": "ATM Screens Service",
+  "main": "states.js",
+  "scripts": {
+    "test": "istanbul cover jasmine"
+  },
+  "repository": "https://github.com/timgabets/atm-screens",
+  "keywords": [
+    "ATM",
+    "Screens"
+  ],
+  "author": {
+    "name": "Tim Gabets",
+    "email": "tim@gabets.ru",
+    "url": "http://gabets.ru/"
+  },
+  "license": "LGPL-2.1",
+  "devDependencies": {
+    "istanbul": "^0.4.5",
+    "jasmine": "^2.8.0"
+  },
+  "dependencies": {
+    "atm-cursor": "^0.1.1",
+    "atm-screentext": "^0.1.0"
+  }
+}
