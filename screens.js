@@ -230,6 +230,93 @@ function ScreensService(settings, log, trace){
       return false;
   };
 
+  function setCharAt(str,index,chr) 
+  {
+    if(index > str.length-1) return str;
+    return str.substring(0,index) + chr + str.substring(index+1);
+  }
+
+  /**
+   * updateScreen description]
+   * @param {[type]} screen [description]
+   */
+  this.updateScreen = function(screen)
+  {
+    var parsed = this.parseScreen(screen);
+    if(parsed)
+	{
+      var screen_rows = ['@','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'];  
+
+      // Buscar donde esta el add_text
+	  var parsedAddTextIndex = -1;
+	  var thisSreenAddTextIndex = -1;
+      for (var i=0; i < parsed.actions.length; i++)
+	  {
+	    if ( typeof(parsed.actions[i]) != undefined )
+		  if ( typeof(parsed.actions[i]['add_text']) != 'undefined' )
+		  {
+              // log.info('JFRD node_modules\\atm-screens\\screens.js Line 258 ' + trace.object(parsed.actions[i]['add_text']) );
+			  parsedAddTextIndex = i;
+			  break;
+		  }
+	  }
+
+      // Buscar el add text en la Panttala Almacena (Actual)
+      for (var i=0; i < this.screens[parsed.number].actions.length; i++)
+	  {
+	    if ( typeof(this.screens[parsed.number].actions[i]) != undefined )
+		{
+		  if ( typeof(this.screens[parsed.number].actions[i]['add_text']) != 'undefined' )
+		  {
+              // log.info('JFRD node_modules\\atm-screens\\screens.js Line 272 Entro ' + i);
+			  thisSreenAddTextIndex = i;
+			  break;
+		  }
+		}
+	  }
+
+	  if ( (parsedAddTextIndex >= 0) && (thisSreenAddTextIndex < 0) )
+	  {
+	      /*
+	       * No Encontro el add_text en la Pantalla Actual y hay uno en la nueva
+		   * Entonces lo agrego a la de Settings(Actual)
+	       */
+		  var i = this.screens[parsed.number].actions.length;
+          // log.info('JFRD node_modules\\atm-screens\\screens.js Line 285 Entro ' + i);
+		  thisSreenAddTextIndex = i;
+		  this.screens[parsed.number].actions[i] = parsed.actions[parsedAddTextIndex];
+	  }
+
+	  if ( (parsedAddTextIndex >= 0) && (thisSreenAddTextIndex >= 0) )
+	  {
+	    /*
+	     * Si se Encontro el add_text en la Pantalla Actual y hay uno en la nueva
+		 * Entonces lo aactualizo a la de Settings(Actual)
+	     */
+        screen_rows.forEach( (val) => 
+	    {
+          for (var i=0; i < parsed.actions[parsedAddTextIndex]['add_text'][val].length; i++)
+	      {
+			var ch = parsed.actions[parsedAddTextIndex]['add_text'][val].charAt(i);
+		    if (ch != ' '.charAt(0) )
+			{
+              // log.info('JFRD node_modules\\atm-screens\\screens.js Line 286 ' + trace.object(this.screens[parsed.number].actions[thisSreenAddTextIndex]['add_text']) );
+			  this.screens[parsed.number].actions[thisSreenAddTextIndex]['add_text'][val] = setCharAt(this.screens[parsed.number].actions[thisSreenAddTextIndex]['add_text'][val], i, ch);
+			}
+		  }
+        });
+	  }
+	  
+      // this.screens[parsed.number] = parsed;
+      if(log && trace)
+        log.info('\tScreen ' + parsed.number + ' processed (screens overall: ' + Object.keys(this.screens).length + '):' + trace.object(parsed));
+      settings.set('screens', this.screens);
+      return true;
+    }
+    else
+      return false;
+  };
+
   /**
    * [parseDynamicScreenData Parse Dynamic screen data coming from Interactive transaction reply from host.
    *                         As dynamic data comes without screen number, we just appending the fake screen 
@@ -275,16 +362,20 @@ function ScreensService(settings, log, trace){
      * 3              Screen number
      * Var            Screen data
      */
-      data.split('\x1d').forEach((element) => {
-        if(element[0] === 'u' || element[1] === 'l'){
+      data.split('\x1d').forEach((element) => 
+	  {
+        if(element[0] === 'u' || element[1] === 'l')
+		{
           if(log)
             log.error('Error processing screen ' + element.substr(0, 6) + ': ' + element[0] + '-type screen processing is not supported');
           return false;
-        } else {  
-          return this.addScreen(element.substr(4));
+        } 
+		else 
+		{  
+          return this.updateScreen(element);
         }
       });
-    return true;
+      return true;
   }
 
   /**
