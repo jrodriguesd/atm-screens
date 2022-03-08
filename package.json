@@ -23,6 +23,6 @@
   },
   "dependencies": {
     "atm-cursor": "^0.1.1",
-    "atm-screentext": "^0.1.0"
+    "atm-screentext": "git://github.com/jrodriguesd/atm-screentext"
   }
 }
